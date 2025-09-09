@@ -1,0 +1,12 @@
+/* 
+  Localizable.strings
+  Infobus Tracker
+
+  Created by Mag on 02.09.2025.
+  
+*/
+"tab.map" = "Карта";
+"tab.routes" = "Маршруты";
+"tab.stops" = "Остановки";
+"tab.search" = "Поиск";
+"tab.settings" = "Настройки";
