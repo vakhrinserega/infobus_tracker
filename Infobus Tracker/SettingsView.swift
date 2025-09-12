@@ -8,68 +8,68 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @State private var selectedCountry = SettingsManager.shared.country
-    @State private var selectedCity = SettingsManager.shared.city
-    @State private var onlyAccessibleBuses = SettingsManager.shared.onlyAccessibleBuses
+    @State private var countries: [Country] = []
+    @State private var cities: [CityShort] = []
+    
+    @State private var selectedCountryId: Int?
+    @State private var selectedCityId: Int?
+    @State private var onlyAccessibleBuses: Bool = false
+    
+    @State private var isLoadingCountries = true
+    @State private var isLoadingCities = false
     
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Регион")) {
-                    Picker("Страна", selection: $selectedCountry) {
-                        Text("Казахстан").tag("Казахстан")
-                        Text("Россия").tag("Россия")
-                        Text("Узбекистан").tag("Узбекистан")
-                    }
-                    .onChange(of: selectedCountry) { newValue in
-                        SettingsManager.shared.country = newValue
-                    }
-                    
-                    Picker("Город", selection: $selectedCity) {
-                        if selectedCountry == "Казахстан" {
-                            Text("Алматы").tag("Алматы")
-                            Text("Астана").tag("Астана")
-                            Text("Актобе").tag("Актобе")
-                        } else if selectedCountry == "Россия" {
-                            Text("Москва").tag("Москва")
-                            Text("Казань").tag("Казань")
+                    if isLoadingCountries {
+                        ProgressView("Загрузка стран…")
+                    } else {
+                        Picker("Страна", selection: $selectedCountryId) {
+                            ForEach(countries, id: \.id) { country in
+                                Text(country.name).tag(Optional(country.id))
+                            }
+                        }
+                        .onChange(of: selectedCountryId) { newValue in
+                            if let id = newValue {
+                                loadCities(for: id)
+                            }
                         }
                     }
-                    .onChange(of: selectedCity) { newValue in
-                        SettingsManager.shared.city = newValue
+                    
+                    if isLoadingCities {
+                        ProgressView("Загрузка городов…")
+                    } else {
+                        Picker("Город", selection: $selectedCityId) {
+                            ForEach(cities, id: \.id) { city in
+                                Text(city.name).tag(Optional(city.id))
+                            }
+                        }
+                        .onChange(of: selectedCityId) { newValue in
+                            if let id = newValue {
+                                print("✅ selectedCityId: \(id)")
+                            }
+                        }
                     }
                 }
                 
                 Section(header: Text("Маршруты")) {
-                    if !SettingsManager.shared.recentRoutes.isEmpty {
-                        ForEach(SettingsManager.shared.recentRoutes, id: \.self) { route in
-                            Text("Маршрут \(route)")
-                        }
-                        Button("Очистить историю") {
-                            SettingsManager.shared.recentRoutes = []
-                        }
-                        .foregroundColor(.red)
-                    } else {
-                        Text("Нет сохранённых маршрутов")
-                            .foregroundColor(.secondary)
-                    }
+                    Text("История маршрутов будет здесь")
+                        .foregroundColor(.secondary)
                 }
                 
                 Section(header: Text("Доступность")) {
                     Toggle("Только автобусы с пандусом", isOn: $onlyAccessibleBuses)
-                        .onChange(of: onlyAccessibleBuses) { newValue in
-                            SettingsManager.shared.onlyAccessibleBuses = newValue
-                        }
                 }
                 
                 Section(header: Text("Обратная связь")) {
                     HStack {
                         Text("Код приложения")
                         Spacer()
-                        Text(SettingsManager.shared.appCode.prefix(8)) // короткий ID
+                        Text("ABC12345") // пока заглушка
                             .foregroundColor(.gray)
                             .onTapGesture {
-                                UIPasteboard.general.string = SettingsManager.shared.appCode
+                                UIPasteboard.general.string = "ABC12345"
                             }
                     }
                     Button("Написать в поддержку") {
@@ -78,6 +78,52 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Настройки")
+            .onAppear {
+                loadCountries()
+            }
+        }
+    }
+    
+    // MARK: - Network
+    
+    private func loadCountries() {
+        isLoadingCountries = true
+        NetworkManager.shared.getCountries { result in
+            DispatchQueue.main.async {
+                isLoadingCountries = false
+                switch result {
+                case .success(let data):
+                    self.countries = data
+                    print("📥 Загрузили страны: \(data.map { $0.name })")
+                    
+                    if let first = data.first {
+                        self.selectedCountryId = first.id
+                        loadCities(for: first.id)
+                    }
+                case .failure(let error):
+                    print("❌ Ошибка загрузки стран: \(error)")
+                }
+            }
+        }
+    }
+    
+    private func loadCities(for countryId: Int) {
+        isLoadingCities = true
+        NetworkManager.shared.getCities(countryId: countryId) { result in
+            DispatchQueue.main.async {
+                isLoadingCities = false
+                switch result {
+                case .success(let data):
+                    self.cities = data
+                    print("📥 Загрузили города: \(data.map { $0.name })")
+                    
+                    if let first = data.first {
+                        self.selectedCityId = first.id
+                    }
+                case .failure(let error):
+                    print("❌ Ошибка загрузки городов: \(error)")
+                }
+            }
         }
     }
 }
