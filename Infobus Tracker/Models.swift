@@ -117,7 +117,7 @@ struct Bus: Codable {
 
 /// Просто список маршрутов на остановке
 /// (из /cities/{id}/stations/{stationId}/routesatstation)
-typealias RoutesAtStation = [Int]
+typealias RoutesAtStation = [Int]?
 
 // MARK: - Predictions
 

@@ -10,3 +10,29 @@
 "tab.stops" = "Остановки";
 "tab.search" = "Поиск";
 "tab.settings" = "Настройки";
+
+// SettingsView (дополнительно)
+"settings_title" = "Настройки";
+"region_section" = "Регион";
+"country_label" = "Страна";
+"city_label" = "Город";
+"routes_section" = "Маршруты";
+"routes_placeholder" = "История маршрутов будет здесь";
+"accessibility_section" = "Доступность";
+"only_accessible_buses" = "Только автобусы с пандусом";
+"feedback_section" = "Обратная связь";
+"app_code" = "Код приложения";
+"support_button" = "Написать в поддержку";
+"loading_countries" = "Загрузка стран…";
+"loading_cities" = "Загрузка городов…";
+
+// RoutesView
+"routes_title" = "Маршруты";
+"info_button" = "Инфо";
+"stops_button" = "Остановки";
+"buses_count" = "Автобусов: %d";
+
+// StopsView
+"stops_title" = "Остановки";
+"map_button" = "Карта";
+"no_routes" = "Нет маршрутов";

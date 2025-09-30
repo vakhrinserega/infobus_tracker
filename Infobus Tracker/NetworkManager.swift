@@ -79,9 +79,21 @@ final class NetworkManager {
         fetchData(from: "/cities/\(cityId)/routes/\(routeId)/busses", completion: completion)
     }
 
+//    func getRoutesAtStation(cityId: Int, stationId: Int,
+//                            completion: @escaping (Result<RoutesAtStation, Error>) -> Void) {
+//        fetchData(from: "/cities/\(cityId)/stations/\(stationId)/routesatstation", completion: completion)
+//    }
     func getRoutesAtStation(cityId: Int, stationId: Int,
-                            completion: @escaping (Result<RoutesAtStation, Error>) -> Void) {
-        fetchData(from: "/cities/\(cityId)/stations/\(stationId)/routesatstation", completion: completion)
+                            completion: @escaping (Result<[Int], Error>) -> Void) {
+        fetchData(from: "/cities/\(cityId)/stations/\(stationId)/routesatstation") { (result: Result<RoutesAtStation, Error>) in
+            switch result {
+            case .success(let routeIds):
+                // Если null - возвращаем пустой массив
+                completion(.success(routeIds ?? []))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
     }
 
     func getPredictions(cityId: Int, stationId: Int,
@@ -89,4 +101,5 @@ final class NetworkManager {
         fetchData(from: "/cities/\(cityId)/stations/\(stationId)/prediction", completion: completion)
     }
 }
+
 
