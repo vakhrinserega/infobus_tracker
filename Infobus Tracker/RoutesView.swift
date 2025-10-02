@@ -76,24 +76,33 @@ struct RoutesView: View {
     }
     
     private func toggleSelection(for route: Route) {
-        if selectedRoutes.keys.contains(route.id) {
+        var selectedIds = SettingsStorage.shared.selectedRouteIds
+        
+        if selectedIds.contains(route.id) {
+            // Убираем маршрут
+            selectedIds.removeAll { $0 == route.id }
             selectedRoutes.removeValue(forKey: route.id)
         } else {
-            guard selectedRoutes.count < 5 else { return }
+            // Добавляем маршрут (макс 5)
+            guard selectedIds.count < 5 else { return }
+            selectedIds.append(route.id)
             
             if let color = colors.first(where: { !selectedRoutes.values.contains($0) }) {
                 selectedRoutes[route.id] = color
-                
-                var history = SettingsStorage.shared.recentRoutes
-                if !history.contains(route.routeNumber) {
-                    history.insert(route.routeNumber, at: 0)
-                }
-                if history.count > 5 {
-                    history = Array(history.prefix(5))
-                }
-                SettingsStorage.shared.recentRoutes = history
             }
         }
+        
+        SettingsStorage.shared.selectedRouteIds = selectedIds
+        
+        // Сохраняем в историю
+        var history = SettingsStorage.shared.recentRoutes
+        if !history.contains(route.routeNumber) {
+            history.insert(route.routeNumber, at: 0)
+        }
+        if history.count > 5 {
+            history = Array(history.prefix(5))
+        }
+        SettingsStorage.shared.recentRoutes = history
     }
     
     private func loadRoutes() {
@@ -106,6 +115,8 @@ struct RoutesView: View {
         if SettingsStorage.shared.cachedCityId == cityId && !SettingsStorage.shared.cachedRoutes.isEmpty {
             print("📂 Загружаем маршруты из кэша")
             self.routes = SettingsStorage.shared.cachedRoutes
+            // ВОССТАНАВЛИВАЕМ ВЫБРАННЫЕ МАРШРУТЫ
+            self.restoreSelectedRoutes()
             return
         }
         
@@ -119,10 +130,21 @@ struct RoutesView: View {
                     // СОХРАНЯЕМ В КЭШ
                     SettingsStorage.shared.cachedRoutes = data
                     SettingsStorage.shared.cachedCityId = cityId
+                    // ВОССТАНАВЛИВАЕМ ВЫБРАННЫЕ МАРШРУТЫ
+                    self.restoreSelectedRoutes()
                     print("📥 Загружено и сохранено маршрутов: \(data.count)")
                 case .failure(let error):
                     print("❌ Ошибка загрузки маршрутов: \(error)")
                 }
+            }
+        }
+    }
+    
+    private func restoreSelectedRoutes() {
+        let selectedIds = SettingsStorage.shared.selectedRouteIds
+        for (index, id) in selectedIds.enumerated() {
+            if index < colors.count {
+                selectedRoutes[id] = colors[index]
             }
         }
     }

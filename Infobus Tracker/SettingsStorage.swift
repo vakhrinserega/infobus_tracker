@@ -30,6 +30,8 @@ final class SettingsStorage {
         static let cachedCityId = "cachedCityId"
         //для кэша маршрутов
         static let cachedRoutes = "cachedRoutes"
+        //для сохранения id маршрутов между страницами
+        static let selectedRouteIds = "selectedRouteIds"
 
     }
 
@@ -127,6 +129,11 @@ final class SettingsStorage {
                 defaults.set(data, forKey: Keys.cachedRoutes)
             }
         }
+    }
+    
+    var selectedRouteIds: [Int] {
+        get { defaults.array(forKey: Keys.selectedRouteIds) as? [Int] ?? [] }
+        set { defaults.set(newValue, forKey: Keys.selectedRouteIds) }
     }
     
 }
